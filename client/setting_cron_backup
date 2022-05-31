@@ -1,2 +1,2 @@
 0 * * * * cd /home/soreta/Downloads/fp-sisop-e03-2022/dump && ./program_dump_client.o -u root -p 123 > database_name.database && zip -rm database_name.database
-0 * * * * cd /home/soreta/Downloads/fp-sisop-e03-2022/database  && zip -r /home/soreta/Downloads/fp-sisop-e03-2022/database/log_$(date +\%Y\%m\%d\%H\%M\%S).zip /home/soreta/Downloads/fp-sisop-e03-2022/database/database.log
+0 * * * * cd /home/soreta/Downloads/fp-sisop-e03-2022/database && zip -r log_$(date +\%Y\%m\%d\%H\%M\%S).zip database.log && truncate -s 0 database.log
