@@ -1,0 +1,1 @@
+0 * * * * cd /home/soreta/Downloads/fp-sisop-e03-2022/dump && ./program_dump_client.o -u root -p 123 > database_name.database && zip -rm database_name.database
