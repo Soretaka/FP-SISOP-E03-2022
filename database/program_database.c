@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdbool.h>
@@ -23,12 +23,12 @@ int ctrClient = 0;
 int opt = 1;
 struct sockaddr_in address;
 int addrlen = sizeof(address);
- 
+
 // const for currTime string
 static const int TIME_SIZE = 30;
 // const for log string size
 static const int LOG_SIZE = 1000;
- 
+
 static char *logpath = "database.log";
 static char *AUTH_ERROR = "Authentication error.\nClosing connection...\n";
 static char *PERM_ERROR = "You have no permission to run that command.\n";
@@ -39,28 +39,28 @@ static char *DB_PROG_NAME = "databaseku";
 static char *AUTH_DB = "auth";
 static char *USER_TABLE = "users";
 static char *PERM_TABLE = "permissions";
- 
+
 pthread_t tid[3000];
- 
+
 typedef struct user_t {
     char name[SIZE];
     char pass[SIZE];
     bool isRoot;
 } User;
- 
+
 void makeUser(User* user, char *name, char *pass) {
     strcpy(user->name, name);
     strcpy(user->pass, pass);
 }
- 
+
 void printUser(User* user) {
     printf("name: %s\npass: %s\n", user->name, user->pass);
 }
- 
+
 bool equalUser(User *a, User *b) {
     return (strcmp(a->name, b->name) == 0 && strcmp(a->pass, b->pass) == 0);
 }
- 
+
 bool isAlphanum(char c) {
     if (c >= 'A' && c <= 'Z') return 1;
     else if(c >= 'a' && c <= 'z') return 1;
@@ -69,7 +69,7 @@ bool isAlphanum(char c) {
     else if (c == '=') return 1;
     return 0;
 }
- 
+
 void splitCommands(const char *source, char dest[MAX_COMMANDS][MAX_COMMAND_LENGTH], int *command_size) {
     int i = 0, j = 0, k = 0;
     while (i < strlen(source)) {
@@ -92,14 +92,14 @@ void splitCommands(const char *source, char dest[MAX_COMMANDS][MAX_COMMAND_LENGT
     }
     *command_size = j;
 }
- 
+
 void createDatabase(char *name) {
     mkdir(DB_PROG_NAME, 0777);
     char buff[256];
     sprintf(buff, "%s/%s", DB_PROG_NAME, name);
     mkdir(buff, 0777);
 }
- 
+
 void createTable(char *db, char *tb, char *attr[64], int size, char dt[MAX_COLUMN][32], int dt_size) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
@@ -122,7 +122,7 @@ void createTable(char *db, char *tb, char *attr[64], int size, char dt[MAX_COLUM
         fclose(fptr);
     }
 }
- 
+
 void insertToTable(char *db, char *tb, char *attr_data[64], int size) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
@@ -140,7 +140,7 @@ void insertToTable(char *db, char *tb, char *attr_data[64], int size) {
     }
     printf(")\n");
 }
- 
+
 bool doesDatabaseExist(const char name[]) {
     char buff[256];
     sprintf(buff, "%s/%s", DB_PROG_NAME, name);
@@ -152,7 +152,7 @@ bool doesDatabaseExist(const char name[]) {
     }
     return 0;
 }
- 
+
 bool doesTableExist(char *db, char *tb) {
     char filePath[256];
     sprintf(filePath, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
@@ -164,14 +164,14 @@ bool doesTableExist(char *db, char *tb) {
     }
     return 0;
 }
- 
+
 void createUser(char *u, char *p) {
     char *attr[64];
     attr[0] = u;
     attr[1] = p;
     insertToTable(AUTH_DB, USER_TABLE, attr, 2);
 }
- 
+
 void __createUsersTable() {
     char *attr[64];
     attr[0] = "name";
@@ -181,7 +181,7 @@ void __createUsersTable() {
         createTable(AUTH_DB, USER_TABLE, attr, 2, dt, 2);
     }
 }
- 
+
 void __createPermissionsTable() {
     char *attr[64];
     attr[0] = "database";
@@ -191,7 +191,7 @@ void __createPermissionsTable() {
         createTable(AUTH_DB, PERM_TABLE, attr, 2, dt, 2);
     }
 }
- 
+
 void AuthInit() {
     if (!doesDatabaseExist(AUTH_DB)) {
         createDatabase(AUTH_DB);
@@ -199,11 +199,11 @@ void AuthInit() {
     __createUsersTable();
     __createPermissionsTable();
 }
- 
+
 void __readUserTable(User *user, char *line) {
     char u[SIZE];
     char p[SIZE];
- 
+
     int i = 0;
     int j = 0;
     while (line[i] != ',') {
@@ -212,7 +212,7 @@ void __readUserTable(User *user, char *line) {
     u[j++] = '\0';
     i++;
     strcpy(user->name, u);
- 
+
     j = 0;
     while (line[i] != ',') {
         p[j++] = line[i++];
@@ -220,12 +220,12 @@ void __readUserTable(User *user, char *line) {
     p[j++] = '\0';
     strcpy(user->pass, p);
 }
- 
+
 bool NormalUserAuth(User *user) {
     char filePath[256];
     sprintf(filePath, "%s/%s/%s.nya", DB_PROG_NAME, AUTH_DB, USER_TABLE);
     FILE *f = fopen(filePath, "r");
- 
+
     if (!f) {
         printf("error opening file");
         return false;
@@ -243,7 +243,7 @@ bool NormalUserAuth(User *user) {
                 if (equalUser(user, &attempt)) {
                     return true;
                 }
- 
+
                 temp_size = 0;
             }
         }
@@ -261,10 +261,10 @@ bool NormalUserAuth(User *user) {
         temp_size = 0;
     }
     fclose(f);
- 
+
     return false;
 }
- 
+
 bool ClientAuth(User* user) {
     if (strcmp(user->name, ROOT) == 0) {
         user->isRoot = 1;
@@ -274,28 +274,28 @@ bool ClientAuth(User* user) {
         user->isRoot = 0;
         return 1;
     }
- 
+
     return 0;
+} 
+
+void MessageSentByDB(int *new_socket, char *msg) {
+    send(*new_socket, msg, strlen(msg), 0);
 }
- 
-void dbSendMessage(int *new_socket, char *message) {
-    send(*new_socket, message, strlen(message), 0);
-}
- 
-void selectFromTable(int *sock, const char *db, const char *tb) {
-    char buff[256];
-    sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
-    FILE *fptr = fopen(buff, "r");
-    if (!fptr) return;
-    char temp[256];
+
+void SelectCommand(int *sock, const char *db, const char *tb) {
+    char buffer[256],temp[256];
     int temp_size = 0;
+    sprintf(buffer, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
+
+    FILE *fptr = fopen(buffer, "r");
+    if (!fptr) return;
     char ch;
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == '\n') {
             if (temp_size) {
                 temp[temp_size++] = '\n';
                 temp[temp_size++] = '\0';
-                dbSendMessage(sock, temp);
+                MessageSentByDB(sock, temp);
                 temp_size = 0;
             }
         }
@@ -306,37 +306,37 @@ void selectFromTable(int *sock, const char *db, const char *tb) {
     if (temp_size) {
         temp[temp_size++] = '\n';
         temp[temp_size++] = '\0';
-        dbSendMessage(sock, temp);
+        MessageSentByDB(sock, temp);
         temp_size = 0;
     }
     fclose(fptr);
 }
-//Where pada select *
-void selectFromTable3(int *sock, const char *db, const char *tb, const char *col, const char *val) {
+
+void SelectWithWhere(int *sock, const char *db, const char *tb, const char *col, const char *val) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
     FILE *fptr = fopen(buff, "r");
     if (!fptr) return;
     char printable[STR_SIZE];
     char ch;
-    char temp[256];
+    char temp[256],itterator_col[256];
     int temp_size = 0;
-    char itterator_col[256];
     int itterator_col_size = 0;
     bool isInHeader = true;
     int col_number = 1;
     bool found_col = false;
     int itt_col_num = 1;
     bool row_valid = false;
+
     while (fscanf(fptr, "%c", &ch) != EOF){
         if (ch == '\n') {
             itt_col_num = 1;
- 
+            
             if (temp_size) {
                 temp[temp_size++] = '\n';
                 temp[temp_size++] = '\0';
-                if(row_valid || isInHeader)dbSendMessage(sock, temp);
-                printf("DEBUG:: temp %s\n", temp);
+                if(row_valid || isInHeader)MessageSentByDB(sock, temp);
+                printf("CEK SELECT WHERE : temp isinya %s\n", temp);
                 temp_size = 0;
             }
             isInHeader = false;
@@ -346,13 +346,13 @@ void selectFromTable3(int *sock, const char *db, const char *tb, const char *col
             if(ch == ','){
                 itterator_col[itterator_col_size] = '\0';
                 itterator_col_size = 0;
-                printf("DEBUG3::itt_col = %s dan val = %s\n",itterator_col, val);
-                printf("DEBUG3::itt_col_num = %d dan col_number = %d\n",itt_col_num, col_number);
+                printf("CEK SELECT WHERE : itt_col = %s dan val = %s\n",itterator_col, val);
+                printf("CEK SELECT WHERE : itt_col_num = %d dan col_number = %d\n",itt_col_num, col_number);
                 if(itt_col_num == col_number){
                     if(!isInHeader && found_col){
                         if(strcmp(val, itterator_col) == 0){
                             row_valid = true;
-                            printf("INI VALID\n");
+                            printf("INI BENAR\n");
                         }else{
                             // printf("INI GAK VALID\n");
                             // row_valid = false;
@@ -360,12 +360,12 @@ void selectFromTable3(int *sock, const char *db, const char *tb, const char *col
                     }
                 }
                 itt_col_num++;
- 
+
                 if(isInHeader && !found_col){
                     if(strcmp(col, itterator_col) == 0){
-                        printf("KETEMU col no %d\n", col_number);
+                        printf("DAPET kolom nomor %d\n", col_number);
                         found_col = true;
- 
+
                     }else{
                         col_number++;
                     }
@@ -380,22 +380,20 @@ void selectFromTable3(int *sock, const char *db, const char *tb, const char *col
     if (temp_size) {
         temp[temp_size++] = '\n';
         temp[temp_size++] = '\0';
-        if(row_valid)dbSendMessage(sock, temp);
-        printf("DEBUG2:: temp %s\n", temp);
+        if(row_valid)MessageSentByDB(sock, temp);
+        printf("CHECK DI TEMP_SIZE : temp %s\n", temp);
         temp_size = 0;
     }
     fclose(fptr);
- 
+
 }
- 
-bool isStringInCol(char s1[MAX_COLUMN_LEN], const char arr[MAX_COLUMN][MAX_COLUMN_LEN], int arr_size) {
-    for (int i = 0; i < arr_size; i++) {
-        if (strcmp(s1, arr[i]) == 0) return 1;
-    }
+
+bool ColContainStr(char str[MAX_COLUMN_LEN], const char arr[MAX_COLUMN][MAX_COLUMN_LEN], int arr_size) {
+    for (int i = 0; i < arr_size; i++) if (strcmp(str, arr[i]) == 0) return 1;
     return 0;
 }
- 
-void selectFromTable2(int *sock, const char *db, const char *tb, const char col[MAX_COLUMN][MAX_COLUMN_LEN], int col_size) {
+
+void SelectCommand2(int *sock, const char *db, const char *tb, const char col[MAX_COLUMN][MAX_COLUMN_LEN], int col_size) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
     FILE *fptr = fopen(buff, "r");
@@ -408,13 +406,14 @@ void selectFromTable2(int *sock, const char *db, const char *tb, const char col[
     memset(printable, 0, sizeof(printable));
     int tb_col_number = 0;
     char ch;
-    // Reading header
+
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
-            if (isStringInCol(tb_col, col, col_size)) {
+            if (ColContainStr(tb_col, col, col_size)) {
                 tb_col_reserved[tb_col_number] = 1;
-                //aku nemu kalau cuma select 1 column ada pengecualian
+
+                //Exception Found
                 if(col_size == 1)sprintf(printable, "%16s ", tb_col);
                 else sprintf(printable, "%s%16s ", printable, tb_col);
             }
@@ -423,9 +422,9 @@ void selectFromTable2(int *sock, const char *db, const char *tb, const char col[
             tb_col_number++;
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch ada newline
             strcat(printable, "\n");
-            dbSendMessage(sock, printable);
+            MessageSentByDB(sock, printable);
             printf("%s", printable);
             break;
         }
@@ -435,7 +434,7 @@ void selectFromTable2(int *sock, const char *db, const char *tb, const char col[
     }
     tb_col_number = 0;
     memset(printable, 0, sizeof(printable));
-    // Reading content
+
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
@@ -446,10 +445,10 @@ void selectFromTable2(int *sock, const char *db, const char *tb, const char col[
             tb_col_size = 0;
         }
         else if (ch == '\n') {
-            // New line
+            // ch nemu newline
             tb_col_number = 0;
             strcat(printable, "\n");
-            dbSendMessage(sock, printable);
+            MessageSentByDB(sock, printable);
             printf("%s", printable);
             memset(printable, 0, sizeof(printable));
         }
@@ -458,69 +457,66 @@ void selectFromTable2(int *sock, const char *db, const char *tb, const char col[
         }
     }
     strcat(printable, "\n");
-    dbSendMessage(sock, printable);
+    MessageSentByDB(sock, printable);
     printf("%s", printable);
     memset(printable, 0, sizeof(printable));
     fclose(fptr);
 }
- 
-void selectFromTable4(int *sock, const char *db, const char *tb, const char col[MAX_COLUMN][MAX_COLUMN_LEN], int col_size, const char *col_in_where, const char *val) {
-    //printf("CEK col_in_where = %s\n", col_in_where);
+
+void SelectCommand4(int *sock, const char *db, const char *tb, const char col[MAX_COLUMN][MAX_COLUMN_LEN], int col_size, const char *col_in_where, const char *val) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
+    printf("cek isi buff : %s dan kolom di : %s\n", buff, col_in_where);
+
     FILE *fptr = fopen(buff, "r");
     if (!fptr) return;
-    char printable[STR_SIZE];
-    char tb_col[MAX_COLUMN_LEN];
+    char printable[STR_SIZE],tb_col[MAX_COLUMN_LEN];
     char tb_col_size = 0;
     bool tb_col_reserved[MAX_COLUMN];
     memset(tb_col_reserved, 0, sizeof(tb_col_reserved));
     memset(printable, 0, sizeof(printable));
     int tb_col_number = 0;
     char ch;
- 
+
     char itt_cell_name[256];
     int itt_cell_name_size = 0;
     int col_number = 1;
     bool col_founded = false;
- 
-    // Reading header
+    
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
             itt_cell_name[itt_cell_name_size] = '\0';
             itt_cell_name_size = 0;
- 
+            
             if(!col_founded){
-                //printf("TESS cell name = %s col_in_where = %s\n", itt_cell_name, col_in_where);
+                //printf("coba cek kolom dimana : %s\n", col_in_where);
+                //printf("cek juga nama cell : %s\n", itt_cell_name);
+
                 if(strcmp(itt_cell_name, col_in_where) == 0){
-                    //printf("KETEMU! col number = %d\n", col_number);
+                    //printf("cell_name dan col_in_where cocok!!!");
                     col_founded = true;
                 }else{
                     col_number++;
                 }
             }
- 
-            //printf("DEBUG::itt_col = %s dan col = %s\n",itt_cell_name, col_in_where);
- 
-            if (isStringInCol(tb_col, col, col_size)) {
+
+            if (ColContainStr(tb_col, col, col_size)) {
                 tb_col_reserved[tb_col_number] = 1;
-                //printf("PRINTABLE sebelum %s\n", printable);
                 if(col_size == 1)sprintf(printable, "%16s ", tb_col);
                 else sprintf(printable, "%s%16s ", printable, tb_col);
-                //printf("PRINTABLE setelah %s\n", printable);
+                //printf("PRINTABLE after : %s\n", printable);
             }
             tb_col[0] = '\0';
             tb_col_size = 0;
             tb_col_number++;
- 
+
             memset(itt_cell_name, 0, sizeof(itt_cell_name));
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch nemu newline
             strcat(printable, "\n");
-            dbSendMessage(sock, printable);
-            //printf("PEMBACAAN HEADER %s", printable);
+            MessageSentByDB(sock, printable);
             break;
         }
         else {
@@ -530,30 +526,29 @@ void selectFromTable4(int *sock, const char *db, const char *tb, const char col[
     }
     tb_col_number = 0;
     memset(printable, 0, sizeof(printable));
- 
+
     int itt_col_num = 1;
     bool is_cell_valid = false;
-    // Reading content
+
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
             itt_cell_name[itt_cell_name_size] = '\0';
             itt_cell_name_size = 0;
-            // printf("DEBUG2::itt_cell = %s dan val = %s\n",itt_cell_name, val);
-            // printf("DEBUG3::itt_col_num = %d dan col_number = %d\n",itt_col_num, col_number);
+
             if(itt_col_num == col_number){
                 if(strcmp(itt_cell_name, val) == 0){
-                    //printf("VALID\n");
+                    //printf("itt_cell_name cocok dengan val!!!\n");
                     is_cell_valid = true;
                 }
             }
- 
+
             if (tb_col_reserved[tb_col_number++]) {
                 sprintf(printable, "%s%16s ", printable, tb_col);
             }
             tb_col[0] = '\0';
             tb_col_size = 0;
- 
+
             itt_col_num++;
             memset(itt_cell_name, 0, sizeof(itt_cell_name));
         }
@@ -562,7 +557,7 @@ void selectFromTable4(int *sock, const char *db, const char *tb, const char col[
             itt_col_num = 1;
             tb_col_number = 0;
             strcat(printable, "\n");
-            if(is_cell_valid)dbSendMessage(sock, printable);
+            if(is_cell_valid)MessageSentByDB(sock, printable);
             //printf("%s", printable);
             is_cell_valid = false;
             memset(printable, 0, sizeof(printable));
@@ -573,16 +568,15 @@ void selectFromTable4(int *sock, const char *db, const char *tb, const char col[
         }
     }
     strcat(printable, "\n");
-    if(is_cell_valid)dbSendMessage(sock, printable);
-    //printf("%s", printable);
+    if(is_cell_valid)MessageSentByDB(sock, printable);
+    //printf("isi dari printable %s", printable);
     memset(printable, 0, sizeof(printable));
     fclose(fptr);
 }
- 
-int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[]) {
-    char buff[256];
+
+int UpdatedInsideTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[]) {
+    char buff[256],buff2[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
-    char buff2[256];
     sprintf(buff2, "%s/%s/%s_new.nya", DB_PROG_NAME, db, tb);
     FILE *fptr = fopen(buff, "r");
     if (!fptr) return 0;
@@ -593,7 +587,7 @@ int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN
     int set_col_id = 0;
     int tb_col_number = 0;
     char ch;
-    // Reading header
+
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
@@ -606,7 +600,7 @@ int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN
             tb_col_number++;
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch nemu newline
             fprintf(fptr2, "\n");
             break;
         }
@@ -615,7 +609,7 @@ int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN
         }
     }
     tb_col_number = 0;
-    // Reading content
+
     int aff_row = 0;
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
@@ -631,7 +625,7 @@ int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN
             tb_col_size = 0;
         }
         else if (ch == '\n') {
-            // New line
+            // ch nemu newline
             tb_col_number = 0;
             fprintf(fptr2, "\n");
         }
@@ -645,8 +639,8 @@ int updateInTable(int *sock, const char *db, const char *tb, char col[MAX_COLUMN
     rename(buff2, buff);
     return aff_row;
 }
- 
-int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[], char *old_val, char *col_in_where) {
+
+int UpdatedInsideTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[], char *old_val, char *col_in_where) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
     char buff2[256];
@@ -660,13 +654,13 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
     int set_col_id = 0;
     int tb_col_number = 0;
     char ch;
-    // Reading header
+    
     char itt_col[256];
     int itt_col_size = 0;
     int col_number = 1;
     bool col_found = false;
     memset(itt_col, 0, sizeof(itt_col));
- 
+    
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
@@ -676,7 +670,7 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
                 //printf("KETEMU di colnum = %d\n", col_number);
                 col_found = true;
             }
- 
+
             if (strcmp(tb_col, col) == 0) {
                 set_col_id = tb_col_number;
             }
@@ -684,13 +678,13 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
             tb_col[0] = '\0';
             tb_col_size = 0;
             tb_col_number++;
- 
+
             if(!col_found)col_number++;
             itt_col_size = 0;
             memset(itt_col, 0, sizeof(itt_col));
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch nemu newline
             fprintf(fptr2, "\n");
             break;
         }
@@ -700,8 +694,7 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
         }
     }
     tb_col_number = 0;
-    // Reading content
- 
+
     //char itt_col[256];
     itt_col_size = 0;
     int itt_col_num = 1;
@@ -721,8 +714,8 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
             // printf("DEBUG 2 :: itt_col = %s and old_val = %s\n", itt_col, old_val);
             // printf("DEBUG 3 :: col_number = %d and itt_col_num = %d\n", col_number, itt_col_num);
             // printf("DEBUG 4 :: tb_col_num = %d and set_col_id = %d\n", tb_col_number, set_col_id);
- 
- 
+
+            
             // printf("DEBUG 5 :: temp_cel = %s and val = %s\n\n",temp_cell, val);
             if ((strcmp(old_val, itt_col) == 0) && (col_number == itt_col_num)) {
                 // fprintf(fptr2, "%s,", val);
@@ -732,7 +725,7 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
             else {
                 //fprintf(fptr2, "%s,", tb_col);
             }
- 
+
             if(((tb_col_number++) == set_col_id)){
                 sprintf(temp_cell, "%s,", val);
                 strcat(printable, temp_cell);
@@ -740,13 +733,13 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
                 sprintf(temp_cell, "%s,", tb_col);
                 strcat(printable, temp_cell);
             }
- 
+
             sprintf(temp_cell, "%s,", tb_col);
             strcat(printable_nonvalid, temp_cell);
- 
+
             tb_col[0] = '\0';
             tb_col_size = 0;
- 
+
             itt_col_size = 0;
             itt_col_num++;
             memset(itt_col, 0, sizeof(itt_col));
@@ -761,7 +754,7 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
                 fprintf(fptr2, "%s", printable_nonvalid);
                 fprintf(fptr2, "\n");
             }
- 
+            
             printf("CEK %s\n\n", printable);
             memset(printable, 0, sizeof(printable));
             memset(printable_nonvalid, 0, sizeof(printable_nonvalid));
@@ -774,7 +767,7 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
             itt_col[itt_col_size++] = ch;
         }
     }
- 
+
     if(isValid){
         fprintf(fptr2, "%s", printable);
         aff_row++;
@@ -786,11 +779,10 @@ int updateInTable2(int *sock, const char *db, const char *tb, char col[MAX_COLUM
     rename(buff2, buff);
     return aff_row;
 }
- 
-int dropColumn(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[]) {
-    char buff[256];
+
+int ColumnDrop(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LEN], char val[]) {
+    char buff[256],buff2[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
-    char buff2[256];
     sprintf(buff2, "%s/%s/%s_new.nya", DB_PROG_NAME, db, tb);
     FILE *fptr = fopen(buff, "r");
     if (!fptr) return 0;
@@ -801,7 +793,7 @@ int dropColumn(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LE
     int set_col_id = 0;
     int tb_col_number = 0;
     char ch;
-    // Reading header
+
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
@@ -812,13 +804,13 @@ int dropColumn(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LE
             }else{
                 fprintf(fptr2, "%s,", tb_col);
             }
- 
+            
             tb_col[0] = '\0';
             tb_col_size = 0;
             tb_col_number++;
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch nemu newline
             fprintf(fptr2, "\n");
             break;
         }
@@ -827,7 +819,6 @@ int dropColumn(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LE
         }
     }
     tb_col_number = 0;
-    // Reading content
     int aff_row = 0;
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
@@ -857,8 +848,8 @@ int dropColumn(int *sock, const char *db, const char *tb, char col[MAX_COLUMN_LE
     rename(buff2, buff);
     return aff_row;
 }
- 
-int deleteFromTable(char *db, char *tb, char col[], char val[]) {
+
+int RemoveFromTable(char *db, char *tb, char col[], char val[]) {
     char buff[256];
     sprintf(buff, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
     char buff2[256];
@@ -874,7 +865,7 @@ int deleteFromTable(char *db, char *tb, char col[], char val[]) {
     char ch;
     bool useWhere = true;
     if (strcmp(col, "$") == 0) useWhere = false;
-    // Reading header
+    
     while (fscanf(fptr, "%c", &ch) != EOF) {
         if (ch == ',') {
             tb_col[tb_col_size++] = '\0';
@@ -887,7 +878,7 @@ int deleteFromTable(char *db, char *tb, char col[], char val[]) {
             tb_col_number++;
         }
         else if (ch == '\n') {
-            // New line is detected
+            // ch nemu newline
             fprintf(fptr2, "\n");
             break;
         }
@@ -896,7 +887,6 @@ int deleteFromTable(char *db, char *tb, char col[], char val[]) {
         }
     }
     tb_col_number = 0;
-    // Reading content
     int aff_row = 0;
     char printable[1024];
     memset(printable, 0, sizeof(printable));
@@ -920,7 +910,7 @@ int deleteFromTable(char *db, char *tb, char col[], char val[]) {
             tb_col_size = 0;
         }
         else if (ch == '\n') {
-            // New line
+            // ch nemu newline
             tb_col_number = 0;
             strcat(printable, "\n");
             if (!isDeleted) {
@@ -945,18 +935,18 @@ int deleteFromTable(char *db, char *tb, char col[], char val[]) {
     rename(buff2, buff);
     return aff_row;
 }
- 
+
 void grantPermission(char *db, char *us) {
     char *attr[64];
     attr[0] = db;
     attr[1] = us;
     insertToTable(AUTH_DB, PERM_TABLE, attr, 2);
 }
- 
+
 void __hasPermissionToDBHelper(char *line, char *db_r, char *us_r) {
     char d[SIZE];
     char u[SIZE];
- 
+
     int i = 0;
     int j = 0;
     while (line[i] != ',') {
@@ -965,7 +955,7 @@ void __hasPermissionToDBHelper(char *line, char *db_r, char *us_r) {
     d[j++] = '\0';
     i++;
     strcpy(db_r, d);
- 
+
     j = 0;
     while (line[i] != ',') {
         u[j++] = line[i++];
@@ -973,17 +963,17 @@ void __hasPermissionToDBHelper(char *line, char *db_r, char *us_r) {
     u[j++] = '\0';
     strcpy(us_r, u);
 }
- 
+
 bool hasPermissionToDB(char *name, char *db) {
- 
+
     if (strcmp(name, ROOT) == 0) {
         return true;
     }
- 
+
     char filePath[256];
     sprintf(filePath, "%s/%s/%s.nya", DB_PROG_NAME, AUTH_DB, PERM_TABLE);
     FILE *f = fopen(filePath, "r");
- 
+
     if (!f) {
         printf("error opening file");
         return false;
@@ -992,21 +982,21 @@ bool hasPermissionToDB(char *name, char *db) {
     char temp[256];
     int temp_size = 0;
     char ch;
- 
+
     char db_read[SIZE];
     char us_read[SIZE];
- 
+
     while (fscanf(f, "%c", &ch) != EOF) {
         if (ch == '\n') {
             if (temp_size) {
                 temp[temp_size++] = '\n';
                 temp[temp_size++] = '\0';
                 __hasPermissionToDBHelper(temp, db_read, us_read);
- 
+
                 if (strcmp(db_read, db) == 0 && strcmp(us_read, name) == 0) {
                     return true;
                 }
- 
+
                 temp_size = 0;
             }
         }
@@ -1018,41 +1008,41 @@ bool hasPermissionToDB(char *name, char *db) {
         temp[temp_size++] = '\n';
         temp[temp_size++] = '\0';
         __hasPermissionToDBHelper(temp, db_read, us_read);
- 
+
         if (strcmp(db_read, db) == 0 && strcmp(us_read, name) == 0) {
             return true;
         }
- 
+
         temp_size = 0;
     }
     fclose(f);
- 
+
     return false;
 }
- 
+
 int __dropDatabaseHelper(const char *path) {
    DIR *d = opendir(path);
    size_t path_len = strlen(path);
    int r = -1;
- 
+
    if (d) {
       struct dirent *p;
- 
+
       r = 0;
       while (!r && (p=readdir(d))) {
           int r2 = -1;
           char *buf;
           size_t len;
- 
+
           if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
              continue;
- 
+
           len = path_len + strlen(p->d_name) + 2; 
           buf = malloc(len);
- 
+
           if (buf) {
              struct stat statbuf;
- 
+
              snprintf(buf, len, "%s/%s", path, p->d_name);
              if (!stat(buf, &statbuf)) {
                 if (S_ISDIR(statbuf.st_mode))
@@ -1066,23 +1056,23 @@ int __dropDatabaseHelper(const char *path) {
       }
       closedir(d);
    }
- 
+
    if (!r)
       r = rmdir(path);
- 
+
    return r;
 }
- 
+
 void dropDatabase(char *db) {
     char path[SIZE];
     sprintf(path, "%s/%s", DB_PROG_NAME, db);
     __dropDatabaseHelper(path);
 }
- 
+
 void dropTable(char *db, char *tb) {
     char filePath[SIZE];
     sprintf(filePath, "%s/%s/%s.nya", DB_PROG_NAME, db, tb);
- 
+
     if (remove(filePath) == 0) {
         printf("[Log] Table %s.%s has ben dropped.\n", db, tb);
     }
@@ -1090,22 +1080,22 @@ void dropTable(char *db, char *tb) {
         printf("failed to drop table.");
     }
 }
- 
+
 void logging(User *user, char *command) {
     time_t t = time(NULL);
     struct tm* lt = localtime(&t);
- 
+
     char currTime[TIME_SIZE];
     strftime(currTime, TIME_SIZE, "%Y-%m-%d %H:%M:%S", lt);
- 
+
     char log[LOG_SIZE];
     sprintf(log, "%s:%s:%s", currTime, user->name, command);
- 
+
     FILE *out = fopen(logpath, "a");
     fprintf(out, "%s\n", log);
     fclose(out);
 }
- 
+
 void exportTable(int *sock, char database_name[], char table_name[]) {
     printf("DEBUG: Exporting %s.%s\n", database_name, table_name);
     char path[256];
@@ -1119,7 +1109,7 @@ void exportTable(int *sock, char database_name[], char table_name[]) {
         int new_socket = *(int *)sock;
         // Flush query
         memset(query, 0, sizeof(query));
- 
+
         // Read creation query in special file
         char nyapath[256];
         sprintf(nyapath, "%s/%s/.%s_nya", DB_PROG_NAME, database_name, table_name);
@@ -1133,25 +1123,25 @@ void exportTable(int *sock, char database_name[], char table_name[]) {
             query[i++] = '\0';
             sprintf(buffer, "%s\n", query);
             memset(query, 0, sizeof(query));
-            dbSendMessage(&new_socket, buffer);
+            MessageSentByDB(&new_socket, buffer);
             fclose(header_fptr);
         }
- 
-        // Reading header
+
+        
         while (fscanf(fptr, "%c", &ch) != EOF) {
             if (ch == '\n') 
                 // New line is reached, stop while loop
                 break;
         }
- 
+
         // Flush query
         memset(query, 0, sizeof(query));
- 
+
         strcpy(query, "INSERT INTO ");
         strcat(query, table_name);
         strcat(query, " (");
- 
-        // Reading content
+
+
         while (fscanf(fptr, "%c", &ch) != EOF) {
             if (ch == ',') {
                 temp[temp_size++] = '\0';
@@ -1166,11 +1156,11 @@ void exportTable(int *sock, char database_name[], char table_name[]) {
                 query[strlen(query)-2] = ')';
                 // Post
                 sprintf(buffer, "%s\n", query);
-                dbSendMessage(&new_socket, buffer);
- 
+                MessageSentByDB(&new_socket, buffer);
+
                 // Flush query
                 memset(query, 0, sizeof(query));
- 
+                
                 // Construct pre-query string
                 strcpy(query, "INSERT INTO ");
                 strcat(query, table_name);
@@ -1178,41 +1168,41 @@ void exportTable(int *sock, char database_name[], char table_name[]) {
             }
             else temp[temp_size++] = ch;
         }
- 
+
         // Replace ", " to ");" at the end of query string
         query[strlen(query)-1] = ';';
         query[strlen(query)-2] = ')';
         // Post
         sprintf(buffer, "%s\n", query);
-        dbSendMessage(&new_socket, buffer);
- 
+        MessageSentByDB(&new_socket, buffer);
+        
         // Flush query
         memset(query, 0, sizeof(query));
- 
+
         fclose(fptr);
     }
 }
- 
+
 void exportDatabase(int *sock, char database_name[]) {
     // Use dirent.h library to list all tables.
     DIR *dp;
     struct dirent *ep;
- 
+    
     char path[256];
     sprintf(path, "%s/%s", DB_PROG_NAME, database_name);
- 
+
     dp = opendir(path);
- 
+
     if (dp) {
         int new_socket = *(int *)sock;
- 
- 
+
+
         char buffer[STR_SIZE];
         memset(buffer, 0, sizeof(buffer));
         sprintf(buffer, "CREATE DATABASE %s;\n", database_name);
- 
-        dbSendMessage(&new_socket, buffer);
- 
+
+        MessageSentByDB(&new_socket, buffer);
+
         while ((ep = readdir(dp))) {
             // Ignore hidden files
             if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0 || ep->d_name[0] == '.') continue;
@@ -1222,14 +1212,14 @@ void exportDatabase(int *sock, char database_name[]) {
             table_name[strlen(table_name)-4] = '\0';
             exportTable(sock, database_name, table_name);
         }
- 
+
         close (new_socket);
- 
+
         closedir(dp);
     }
 }
- 
-void *client(void *tmp) {
+
+void *client(void *tmp) { 
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
     int valread, new_socket = *(int *)tmp;
@@ -1248,14 +1238,14 @@ void *client(void *tmp) {
     else {
         char name[50];
         char pass[50];
- 
+
         strcpy(name, buffer);
         memset(buffer, 0, sizeof(buffer));
-        dbSendMessage(&new_socket, "received");
- 
+        MessageSentByDB(&new_socket, "received");
+        
         valread = read(new_socket, buffer, 1024);
         strcpy(pass, buffer);
- 
+
         makeUser(&current, name, pass);
     }
     memset(buffer, 0, sizeof(buffer));
@@ -1265,43 +1255,43 @@ void *client(void *tmp) {
         close(new_socket);
         return 0;
     }
-    // Authorized Client Start
- 
+    // Authorized Client Start 
+
     char selectedDatabase[128];
     selectedDatabase[0] = '\0';
     while (true) {
         valread = read(new_socket, buffer, STR_SIZE);
- 
+
         if (strcmp(buffer, "quit") == 0) {
             printf("Closing client\n");
-            dbSendMessage(&new_socket, "Closing\n");
+            MessageSentByDB(&new_socket, "Closing\n");
             close(new_socket);
             return 0;
         }
- 
+
         char commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
         int command_size = 0;
         splitCommands(buffer, commands, &command_size);
- 
+
         if (strcmp(commands[0], "CREATE") == 0) {
             if (strcmp(commands[1], "DATABASE") == 0) {
                 if (strlen(commands[2])) {
                     if (doesDatabaseExist(commands[2])) {
-                        dbSendMessage(&new_socket, "Error, database with that name already exists.\n");
+                        MessageSentByDB(&new_socket, "Error, database with that name already exists.\n");
                     }
                     else {
                         createDatabase(commands[2]);
                         grantPermission(commands[2], current.name);
-                        dbSendMessage(&new_socket, "Database created.\n");
+                        MessageSentByDB(&new_socket, "Database created.\n");
                         logging(&current, buffer);
                     }
                 }
                 else {
-                    dbSendMessage(&new_socket, "Syntax Error: CREATE DATABASE [database name]\n");
+                    MessageSentByDB(&new_socket, "Syntax Error: CREATE DATABASE [database name]\n");
                 }
             }
             else if (strcmp(commands[1], "TABLE") == 0) {
-                if (selectedDatabase[0] == '\0') dbSendMessage(&new_socket, "No database is selected.\n");
+                if (selectedDatabase[0] == '\0') MessageSentByDB(&new_socket, "No database is selected.\n");
                 else {
                     // CREATE TABLE name (name int, name int)
                     char *attr[64], dt[MAX_COLUMN][32];
@@ -1311,57 +1301,57 @@ void *client(void *tmp) {
                         attr[attr_i++] = commands[i];
                         strcpy(dt[dt_size++], commands[i+1]);
                     }
- 
+
                     if (!doesTableExist(selectedDatabase, commands[2])) {
                         createTable(selectedDatabase, commands[2], attr, attr_i, dt, dt_size);
                         logging(&current, buffer);
-                        dbSendMessage(&new_socket, "Table created.\n");
+                        MessageSentByDB(&new_socket, "Table created.\n");
                     }
                     else {
-                        dbSendMessage(&new_socket, "Sorry, a table with that name was already created in this database.\n");
+                        MessageSentByDB(&new_socket, "Sorry, a table with that name was already created in this database.\n");
                     }
                 }   
             }
             else if (strcmp(commands[1], "USER") == 0) {
                 if (!current.isRoot) {
-                    dbSendMessage(&new_socket, PERM_ERROR);
+                    MessageSentByDB(&new_socket, PERM_ERROR);
                 }
                 else if (current.isRoot) {
                     if (command_size != 6) {
-                        dbSendMessage(&new_socket, CMMD_ERROR);
+                        MessageSentByDB(&new_socket, CMMD_ERROR);
                     }
                     else {
                         createUser(commands[2], commands[5]);
                         char success[STR_SIZE];
                         sprintf(success, "Successfully created user %s\n", commands[2]);
                         logging(&current, buffer);
-                        dbSendMessage(&new_socket, success);
+                        MessageSentByDB(&new_socket, success);
                     }
                 }
             }
             else {
-                dbSendMessage(&new_socket, "Syntax Error: CREATE [What to create]");
+                MessageSentByDB(&new_socket, "Syntax Error: CREATE [What to create]");
             }
         }
         else if(strcmp(commands[0], "USE") == 0) {
             if (doesDatabaseExist(commands[1]) && command_size == 2) {
                 if (strcmp(commands[1], AUTH_DB) == 0) {
-                    dbSendMessage(&new_socket, PERM_ERROR);
+                    MessageSentByDB(&new_socket, PERM_ERROR);
                 }
                 else if (hasPermissionToDB(current.name, commands[1])) {
                     strcpy(selectedDatabase, commands[1]);
                     logging(&current, buffer);
-                    dbSendMessage(&new_socket, "Database selected.\n");
+                    MessageSentByDB(&new_socket, "Database selected.\n");
                 }
                 else {
-                    dbSendMessage(&new_socket, PERM_ERROR);
+                    MessageSentByDB(&new_socket, PERM_ERROR);
                 }
             }
-            else dbSendMessage(&new_socket, "Error, database not found.\n");
+            else MessageSentByDB(&new_socket, "Error, database not found.\n");
         }
         else if (strcmp(commands[0], "INSERT") == 0) {
             if (strcmp(commands[1], "INTO") == 0) {
-                if (selectedDatabase[0] == '\0') dbSendMessage(&new_socket, "No database is selected.\n");
+                if (selectedDatabase[0] == '\0') MessageSentByDB(&new_socket, "No database is selected.\n");
                 else {
                     /*
                         This function is not robust yet.
@@ -1384,21 +1374,21 @@ void *client(void *tmp) {
                     if (attr_i) {
                         insertToTable(selectedDatabase, commands[2], attr, attr_i);
                         logging(&current, buffer);
-                        dbSendMessage(&new_socket, "Data inserted.\n");
+                        MessageSentByDB(&new_socket, "Data inserted.\n");
                     }
-                    else dbSendMessage(&new_socket, "No value is assigned.\n");
+                    else MessageSentByDB(&new_socket, "No value is assigned.\n");
                 }
             }
-            else dbSendMessage(&new_socket, "Usage: INSERT INTO [database name] (value1, value2, ...)\n");
+            else MessageSentByDB(&new_socket, "Usage: INSERT INTO [database name] (value1, value2, ...)\n");
         }
         else if (strcmp(commands[0], "SELECT") == 0) {
-            if (selectedDatabase[0] == '\0') dbSendMessage(&new_socket, "No database is selected.\n");
+            if (selectedDatabase[0] == '\0') MessageSentByDB(&new_socket, "No database is selected.\n");
             else {
                 if (strcmp(commands[1], "*") == 0) {
                     //SELECT * FROM [table] have 4 commands
                     if(command_size >= 4){
                         if(command_size == 4){
-                            selectFromTable(&new_socket, selectedDatabase, commands[3]);
+                            SelectCommand(&new_socket, selectedDatabase, commands[3]);
                             logging(&current, buffer);
                         }else if(strcmp(commands[4], "WHERE") == 0){
                             char col[MAX_COLUMN_LEN];
@@ -1416,7 +1406,7 @@ void *client(void *tmp) {
                                 i++;
                                 //capture value
                                 int j=0;
- 
+                                
                                 while(commands[5][i] != '\0'){
                                     value[j] = commands[5][i];
                                     i++;
@@ -1428,12 +1418,12 @@ void *client(void *tmp) {
                                 strcpy(col, commands[5]);
                                 strcpy(value, commands[7]);
                             }
- 
-                            selectFromTable3(&new_socket, selectedDatabase, commands[3], col, value);
+                            
+                            SelectWithWhere(&new_socket, selectedDatabase, commands[3], col, value);
                             logging(&current, buffer);
                         }
                     }else{
-                        dbSendMessage(&new_socket, "Syntax error: SELECT [col1, col2 | *] FROM [table]\n");
+                        MessageSentByDB(&new_socket, "Syntax error: SELECT [col1, col2 | *] FROM [table]\n");
                     }
                 }
                 else {
@@ -1464,12 +1454,12 @@ void *client(void *tmp) {
                             i++;
                         }
                     }
- 
+                    
                     char col_where[MAX_COLUMN_LEN];
                     if(strcmp(commands[i+2], "WHERE") == 0){
                         withWhere = true;
                         int k=0;
- 
+                        
                        if(command_size == i+4){
                             //capture columns name
                             while(commands[i+3][k] != '='){
@@ -1482,7 +1472,7 @@ void *client(void *tmp) {
                             k++;
                             //capture value
                             int j=0;
- 
+
                             while(commands[i+3][k] != '\0'){
                                 value[j] = commands[i+3][k];
                                 k++;
@@ -1495,20 +1485,20 @@ void *client(void *tmp) {
                             strcpy(value, commands[i+5]);
                         }
                     }
- 
+                    
                     if (!isValid) {
-                        dbSendMessage(&new_socket, "Syntax error: SELECT [col1, col2 | *] FROM [table]\n");
+                        MessageSentByDB(&new_socket, "Syntax error: SELECT [col1, col2 | *] FROM [table]\n");
                     }
                     else if(!withWhere){
                         printf("col\n");
                         for (int i = 0; i < col_size; i++) printf("%d. `%s`\n", i, col[i]);
-                        selectFromTable2(&new_socket, selectedDatabase, tb, col, col_size);
+                        SelectCommand2(&new_socket, selectedDatabase, tb, col, col_size);
                         logging(&current, buffer);
                     }
- 
+                    
                     if(withWhere && isValid){
                         //printf("CEK col = %s", col_where);
-                        selectFromTable4(&new_socket, selectedDatabase, tb, col, col_size, col_where, value);
+                        SelectCommand4(&new_socket, selectedDatabase, tb, col, col_size, col_where, value);
                         logging(&current, buffer);
                     }
                 }
@@ -1518,66 +1508,66 @@ void *client(void *tmp) {
             if (doesTableExist(selectedDatabase, commands[1])) {
                 if (strcmp(commands[2], "SET") == 0) {
                     if (command_size == 6 && strcmp(commands[4], "=") == 0) {
-                        int affected_row = updateInTable(&new_socket, selectedDatabase, commands[1], commands[3], commands[5]);
+                        int affected_row = UpdatedInsideTable(&new_socket, selectedDatabase, commands[1], commands[3], commands[5]);
                         char buff[128];
                         sprintf(buff, "%d rows affected.\n", affected_row);
-                        dbSendMessage(&new_socket, buff);
+                        MessageSentByDB(&new_socket, buff);
                         logging(&current, buffer);
                     }
                     if(command_size == 10 && strcmp(commands[8], "=") == 0){
-                        int affected_row = updateInTable2(&new_socket, selectedDatabase, commands[1], commands[3], commands[5], commands[9], commands[7]);
+                        int affected_row = UpdatedInsideTable2(&new_socket, selectedDatabase, commands[1], commands[3], commands[5], commands[9], commands[7]);
                         char buff[128];
                         sprintf(buff, "%d rows affected.\n", affected_row);
-                        dbSendMessage(&new_socket, buff);
+                        MessageSentByDB(&new_socket, buff);
                         logging(&current, buffer);
                     }
-                    else dbSendMessage(&new_socket, "Syntax error: UPDATE [table name] SET [col] = [value]\n");
+                    else MessageSentByDB(&new_socket, "Syntax error: UPDATE [table name] SET [col] = [value]\n");
                 }
-                else dbSendMessage(&new_socket, "Syntax error: UPDATE [table name] SET [col] = [value]\n");
+                else MessageSentByDB(&new_socket, "Syntax error: UPDATE [table name] SET [col] = [value]\n");
             }
-            else dbSendMessage(&new_socket, "Table not found.\n");
+            else MessageSentByDB(&new_socket, "Table not found.\n");
         }
         else if (strcmp(commands[0], "DELETE") == 0) {
             if (strcmp(commands[1], "FROM") == 0) {
-                if (selectedDatabase[0] == '\0') dbSendMessage(&new_socket, "No database is selected.\n");
+                if (selectedDatabase[0] == '\0') MessageSentByDB(&new_socket, "No database is selected.\n");
                 else {
                     if (doesTableExist(selectedDatabase, commands[2])) {
                         if (command_size == 7 && strcmp(commands[3], "WHERE") == 0 && strcmp(commands[5], "=") == 0) {
                             // Delete with WHERE
-                            int affected_row = deleteFromTable(selectedDatabase, commands[2], commands[4], commands[6]);
+                            int affected_row = RemoveFromTable(selectedDatabase, commands[2], commands[4], commands[6]);
                             char buff[128];
                             sprintf(buff, "%d affected row.\n", affected_row);
-                            dbSendMessage(&new_socket, buff);
+                            MessageSentByDB(&new_socket, buff);
                         }
                         else {
                             // Delete without where
-                            int affected_row = deleteFromTable(selectedDatabase, commands[2], "$", "$");
+                            int affected_row = RemoveFromTable(selectedDatabase, commands[2], "$", "$");
                             char buff[128];
                             sprintf(buff, "%d affected row.\n", affected_row);
-                            dbSendMessage(&new_socket, buff);
+                            MessageSentByDB(&new_socket, buff);
                         }
                         logging(&current, buffer);
                     }
                     else {
-                        dbSendMessage(&new_socket, "Table not exist.\n");
+                        MessageSentByDB(&new_socket, "Table not exist.\n");
                     }
                 }
             }
-            else dbSendMessage(&new_socket, "Syntax error: DELETE FROM [table name]\n");
+            else MessageSentByDB(&new_socket, "Syntax error: DELETE FROM [table name]\n");
         }
         else if (strcmp(commands[0], "GRANT") == 0) {
             if (command_size != 5) {
-                dbSendMessage(&new_socket, "Syntax Error: GRANT PERMISSION [Database Name] INTO [User name]\n");
+                MessageSentByDB(&new_socket, "Syntax Error: GRANT PERMISSION [Database Name] INTO [User name]\n");
             }
             else {
                 if (!current.isRoot) {
-                    dbSendMessage(&new_socket, PERM_ERROR);
+                    MessageSentByDB(&new_socket, PERM_ERROR);
                 }
                 else if (current.isRoot) {
                     grantPermission(commands[2], commands[4]);
                     char success[STR_SIZE];
                     sprintf(success, "Granted %s permission to database %s\n", commands[4], commands[2]);
-                    dbSendMessage(&new_socket, success);
+                    MessageSentByDB(&new_socket, success);
                     logging(&current, buffer);
                 }
             }
@@ -1589,14 +1579,14 @@ void *client(void *tmp) {
                         if (hasPermissionToDB(current.name, commands[2])) {
                             dropDatabase(commands[2]);
                             logging(&current, buffer);
-                            dbSendMessage(&new_socket, "Database dropped.\n");
+                            MessageSentByDB(&new_socket, "Database dropped.\n");
                         }
                         else {
-                            dbSendMessage(&new_socket, PERM_ERROR);
+                            MessageSentByDB(&new_socket, PERM_ERROR);
                         }
                     }
                     else {
-                        dbSendMessage(&new_socket, "Cannot found database.\n");
+                        MessageSentByDB(&new_socket, "Cannot found database.\n");
                     }
                 }
                 else if (strcmp(commands[1], "TABLE") == 0) {
@@ -1605,20 +1595,20 @@ void *client(void *tmp) {
                         logging(&current, buffer);
                     }
                     else {
-                        dbSendMessage(&new_socket, "Cannot found table\n");
+                        MessageSentByDB(&new_socket, "Cannot found table\n");
                     }
                 }
                 else if (strcmp(commands[1], "COLUMN") == 0) {
                     if (command_size != 5) {
-                        dbSendMessage(&new_socket, "Syntax Error: DROP COLUMN [column_name] FROM [table_name]\n");
+                        MessageSentByDB(&new_socket, "Syntax Error: DROP COLUMN [column_name] FROM [table_name]\n");
                     }else{
-                        dropColumn(&new_socket, selectedDatabase, commands[4], commands[2], "");
+                        ColumnDrop(&new_socket, selectedDatabase, commands[4], commands[2], "");
                         logging(&current, buffer);
                     }
                 }
             }
             else {
-                dbSendMessage(&new_socket, "Syntax Error on DROP query\n");
+                MessageSentByDB(&new_socket, "Syntax Error on DROP query\n");
             }
         }
         else if (command_size == 3 && strcmp(commands[0], "EXPORT") == 0 && strcmp(commands[1], "DATABASE") == 0) {
@@ -1627,50 +1617,50 @@ void *client(void *tmp) {
                 exportDatabase(&new_socket, commands[2]);
                 logging(&current, buffer);
             }
-            else dbSendMessage(&new_socket, "Database not found.");
+            else MessageSentByDB(&new_socket, "Database not found.");
         }
-        else dbSendMessage(&new_socket, "Command not found.\n");
- 
+        else MessageSentByDB(&new_socket, "Command not found.\n");
+
         memset(buffer, 0, sizeof(buffer));
         memset(commands, 0, sizeof(commands));
-    }
+    } 
 }
- 
+
 int main(int argc, char const *argv[]) {
   pid_t pid, sid;        // Variabel untuk menyimpan PID
- 
+
   pid = fork();     // Menyimpan PID dari Child Process
- 
+
   /* Keluar saat fork gagal
   * (nilai variabel pid < 0) */
   if (pid < 0) {
     exit(EXIT_FAILURE);
   }
- 
+
   /* Keluar saat fork berhasil
   * (nilai variabel pid adalah PID dari child process) */
   if (pid > 0) {
     exit(EXIT_SUCCESS);
   }
- 
+
   umask(0);
- 
+
   sid = setsid();
   if (sid < 0) {
     exit(EXIT_FAILURE);
   }
- 
+
 //   if ((chdir("/")) < 0) {
 //     exit(EXIT_FAILURE);
 //   }
- 
+
 //   close(STDIN_FILENO);
   close(STDOUT_FILENO);
   close(STDERR_FILENO);
- 
+    
   while(1){
         int new_socket;
- 
+      
         if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
             perror("socket failed");
             exit(EXIT_FAILURE);
@@ -1680,23 +1670,23 @@ int main(int argc, char const *argv[]) {
             perror("setsockopt");
             exit(EXIT_FAILURE);
         }
- 
+
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(PORT);
- 
+
         if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
             perror("bind failed");
             exit(EXIT_FAILURE);
         }
- 
+
         if (listen(server_fd, 5) < 0) {
             perror("listen");
             exit(EXIT_FAILURE);
         }
- 
+
         AuthInit();
- 
+
         while(true) {
             if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
             perror("accept");
@@ -1707,4 +1697,4 @@ int main(int argc, char const *argv[]) {
     }
   }
     return 0;
-}
+} 
